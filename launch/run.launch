@@ -1,0 +1,9 @@
+<launch>
+    
+    <!-- Load default parameters from config yaml file -->
+    <!-- <rosparam command="load" file="$(find jetson_perception_ros_nodes)/config/default.yaml" /> -->
+    <!-- monocular depth estimation node -->
+    <node pkg="jetson_perception_ros_nodes" name="mono_depth_node" type="mono_depth_node.py" output="screen">
+    </node>
+
+</launch>

@@ -1,16 +1,14 @@
-
-
-
 monocular_depth_estimation:
 
   enabled: true
-  source_topic: "/camera/color/image_raw"
-  target_topic: "/camera/depth/image_raw"
+  source_topic: "/wide_angle_camera_front/image_color/compressed"
+  target_topic: "/wide_angle_camera_front/depth"
   model:
     model_name: "FastDepthNet"
-    model_path: "/home/nvidia/Downloads/FastDepthNet.pth"
+    model_path: ""
+    # model_path: "/home/nvidia/Downloads/FastDepthNet.pth"
     
-    FasstDepthNet:
-      network: "fcn-resnet18" #fcn-mobilenet, fcn-resnet18, fcn-resnet50
+    FastDepthNet:
+      network: "fcn-resnet50" #fcn-mobilenet, fcn-resnet18, fcn-resnet50
       
 

@@ -1,0 +1,4 @@
+- tar:
+    local-name: cv_bridge
+    uri: https://github.com/ros-perception/vision_opencv/archive/refs/tags/1.15.0.tar.gz
+    version: ros-perception-release-cv_bridge-1.15.0

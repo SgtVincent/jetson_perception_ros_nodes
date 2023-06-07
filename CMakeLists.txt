@@ -12,7 +12,19 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  cv_bridge
+  # jetson-utils 
+  # jetson-inference
+  # CUDA
 )
+
+# detect ROS version
+string(TOUPPER $ENV{ROS_DISTRO} ROS_DISTRO)
+set(ROS_DISTRO "ROS_${ROS_DISTRO}")
+message("detected ROS_DISTRO=${ROS_DISTRO}")
+
+# find_package(VPI 2.0)
+link_directories(/usr/lib/aarch64-linux-gnu/tegra)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -187,6 +199,7 @@ include_directories(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 # install(FILES
 #   # myfile1
 #   # myfile2

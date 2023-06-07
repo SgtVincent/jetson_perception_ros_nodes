@@ -1,2 +1,7 @@
 output/
 .vscode/
+
+# cache and temporary files
+*.py[cod]
+__pycache__/
+*.egg

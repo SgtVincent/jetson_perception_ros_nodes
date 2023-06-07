@@ -19,37 +19,36 @@ class MonoDepthModel:
     self.model_name = params['model_name']
     self.model_path = params['model_path']
 
-    self.load_model()
+    self._load_model()
 
-  def load_model(self):
+  def _load_model(self):
     """
     Load the model from model_path.
     """
     raise NotImplementedError    
 
-  def predict_depth(self, image: np.ndarray)-> np.ndarray:
+  def predict(self, image: np.ndarray)-> np.ndarray:
     """
     Predict depth from image.
+
+    @param image: input image, np.ndarray
+    @return: predicted depth, np.ndarray
+
     """
     raise NotImplementedError
-
-  @staticmethod
-  def create_model(model_params: Dict[str, Any]):
-    """
-    Create a model from model_params.
-    """
-    model_name = model_params['name']
-    # get the class object from the model name and create an instance from the params
-    return globals()[model_name](model_params)
 
 
 # models depending on the jetson-inference library
 try:
-  
-  import jetson.inference
-  import jetson.utils
 
-  class FastDepth(MonoDepthModel):
+  # deprecated   
+  # import jetson.inference
+  # import jetson.utils
+
+  import jetson_inference
+  import jetson_utils
+
+  class FastDepthNet(MonoDepthModel):
     """
     This class provides a unified interface for loading and using FastDepth model.
 
@@ -64,7 +63,7 @@ try:
       """
       super().__init__(params)
 
-    def load_model(self):
+    def _load_model(self):
       """
       Load the model from model_path.
 
@@ -85,26 +84,42 @@ try:
           --output_blob OUTPUT name of the output layer (default is 'output_0')
           --profile            enable layer profiling in TensorRT
       """
-      depth_net_params = get_nested_item(self.params, 'FastDepth')
+      depth_net_params = get_nested_item(self.params, 'FastDepthNet')
       
       # Not using model_path for now, only use built-in cached models
-      self.model = jetson.inference.depthNet(**depth_net_params)
+      self.model = jetson_inference.depthNet(**depth_net_params)
       
       # prepare for the memory mapping 
-      self.depth_field = self.net.GetDepthField()
-      self.depth_filed_numpy = jetson.utils.cudaToNumpy(self.depth_field)
+      self.depth_field = self.model.GetDepthField()
+      self.depth_filed_numpy = jetson_utils.cudaToNumpy(self.depth_field)
 
 
-    def predict_depth(self, image: np.ndarray)-> np.ndarray:
+    def predict(self, image: np.ndarray)-> np.ndarray:
       """
       Predict depth from image.
       """
+      # convert numpy array to jetson_utils.cudaImage
+      cuda_image = jetson_utils.cudaFromNumpy(image)
       # Predict depth from image
-      self.model.Process(image)
+      self.model.Process(cuda_image)
       # wait for GPU to finish processing, so we can use the results on CPU
-      jetson.utils.cudaDeviceSynchronize() 
+      jetson_utils.cudaDeviceSynchronize() 
       # copy the memory mapping to numpy array
+
+      # TODO: comment out the following line to disable printing FPS
+      rospy.loginfo("{:s} Network {:.1f} FPS".format(self.model.GetNetworkName(), self.model.GetNetworkFPS()))
+
       return self.depth_filed_numpy.copy()
   
 except ImportError:
   rospy.logwarn("jetson-inference library not found, FastDepth model will not be available.")
+
+
+
+def create_model(model_params: Dict[str, Any]) -> 'MonoDepthModel':
+  """
+  Create a model from model_params.
+  """
+  model_name = model_params['model_name']
+  # get the class object from the model name and create an instance from the params
+  return globals()[model_name](model_params)

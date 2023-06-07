@@ -2,13 +2,14 @@
 """
 The node mono_depth_node keeps subscribing to a ROS Image topic and publishing the predicted depth from models.
 """
-
+import os
+from os.path import dirname, abspath
 import rospy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
-import cv2
+import yaml 
 
-from monocular_depth_estimation.mono_depth_model import MonoDepthModel
+from monocular_depth_estimation.mono_depth_model import create_model
 from utils.parameters import get_nested_item
 
 
@@ -22,11 +23,17 @@ class MonoDepthNode:
         """
         Read parameters from ROS parameter server.
         """
-        self.params = rospy.get_param('/monocular_depth_estimation')
+        # TODO: rosparam load yaml in roslaunch does not work properly, just load parameters from yaml
+        # self.params = rospy.get_param('/monocular_depth_estimation')  
+        config_path = os.path.join(dirname(dirname(os.path.abspath(__file__))), 'config/default.yaml')
+        with open(config_path, 'r') as f:
+            self.params = get_nested_item(yaml.safe_load(f), 'monocular_depth_estimation')
+        
+
         self.enabled = get_nested_item(self.params, 'enabled')
-        self.source_topic = rospy.get_param('source_topic')
-        self.target_topic = rospy.get_param('target_topic')
-        self.model_params = rospy.get_param('model')
+        self.source_topic = get_nested_item(self.params, 'source_topic')
+        self.target_topic = get_nested_item(self.params, 'target_topic')
+        self.model_params = get_nested_item(self.params, 'model')
 
     def _init_from_params(self):
         """
@@ -36,30 +43,34 @@ class MonoDepthNode:
             rospy.loginfo("Mono depth estimation is disabled.")
             return
         # initialize model from model_params
-        self.model = MonoDepthModel.create_model(self.model_params)
+        self.model = create_model(self.model_params)
 
+        # initialize ROS subscribers and publishers
+        self.bridge = CvBridge()
+        # always get latest image from source_topic
+        self.image_sub = rospy.Subscriber(self.source_topic, CompressedImage, self.image_callback, queue_size=1)
+        self.depth_pub = rospy.Publisher(self.target_topic, Image, queue_size=1)
+        # self.depth_compressed_pub = rospy.Publisher(self.target_topic, CompressedImage, queue_size=1)
+        
 
     def image_callback(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, "rgb8")
         except CvBridgeError as e:
             rospy.logerr("CvBridge Error: %s", e)
             return
 
         # Perform depth prediction using your models
-        predicted_depth = self.predict_depth(cv_image)
+        predicted_depth = self.model.predict(cv_image)
 
         # Convert predicted depth to ROS Image message
-        depth_msg = self.bridge.cv2_to_imgmsg(predicted_depth, "32FC1")
+        # depth_msg = self.bridge.cv2_to_imgmsg(predicted_depth, "32FC1")
+        depth_msg = self.bridge.cv2_to_imgmsg(predicted_depth, "passthrough")
+        # depth_msg = self.bridge.cv2_to_compressed_imgmsg(predicted_depth)
 
         # Publish the predicted depth
         self.depth_pub.publish(depth_msg)
-
-    def predict_depth(self, image):
-        # Implement your depth prediction using models
-        # This is just a placeholder, replace it with your actual code
-        predicted_depth = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        return predicted_depth
+        # self.depth_compressed_pub.publish(depth_msg)
 
     def run(self):
         rospy.spin()
