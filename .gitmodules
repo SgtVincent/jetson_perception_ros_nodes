@@ -1,0 +1,4 @@
+[submodule "scripts/monocular_depth_estimation/GuidedDecoding"]
+	path = scripts/monocular_depth_estimation/GuidedDecoding
+	url = https://github.com/mic-rud/GuidedDecoding.git
+	ignore = dirty
