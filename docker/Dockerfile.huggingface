@@ -1,0 +1,27 @@
+FROM dustynv/ros:noetic-pytorch-l4t-r35.3.1
+LABEL maintainer="Junting Chen"
+LABEL description="jetson container: ros noetic+pytorch+huggingface"
+
+RUN apt update
+RUN apt install -y git libsndfile1-dev tesseract-ocr espeak-ng ffmpeg python3-dev
+RUN python3 -m pip install --no-cache-dir --upgrade pip
+
+# Cannot install from source, because it has too strict requirements a lot of packages
+# RUN python3 -m pip install --no-cache-dir --no-deps 'transformers[torch]' # will overwrite special pytorch version for jetson 
+RUN python3 -m pip install --no-cache-dir transformers 
+
+# Install cv_bridge while ignoring version conflict between installed opencv (custom version for Jetson) and cv_bridge
+# https://github.com/dusty-nv/jetson-containers/issues/158
+RUN apt-mark hold libopencv libopencv-dev 
+RUN apt install -y ros-noetic-cv-bridge
+# RUN apt --fix-broken install -y
+
+# patch PyTorch version string to be compliant with PEP 440
+# from https://github.com/huggingface/transformers/blob/main/docker/transformers-pytorch-gpu/Dockerfile
+RUN echo "patching PyTorch version string to be PEP 440 compliant..."; \
+  sed -i 's/2.0.0.nv23.05/2.0.0/g' /usr/local/lib/python3.8/dist-packages/torch/version.py; \
+  sed -i 's/2.0.0.nv23.05/2.0.0/g' /usr/local/lib/python3.8/dist-packages/torch-2.0.0.nv23.05.dist-info/METADATA; \
+  head /usr/local/lib/python3.8/dist-packages/torch/version.py; \
+  head /usr/local/lib/python3.8/dist-packages/torch-2.0.0.nv23.05.dist-info/METADATA; \
+
+RUN python3 -c "import torch; print(torch.cuda.is_available())"

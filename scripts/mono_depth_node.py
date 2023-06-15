@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 """
 The node mono_depth_node keeps subscribing to a ROS Image topic and publishing the predicted depth from models.
 """
@@ -10,7 +10,7 @@ from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 import yaml 
 
-from monocular_depth_estimation.mono_depth_model import create_model
+from monocular_depth_estimation import create_model
 from utils.parameters import get_nested_item
 
 
@@ -18,6 +18,7 @@ class MonoDepthNode:
     def __init__(self):
         self._read_params()
         self._init_from_params()
+        self._last_image = None
         
 
     def _read_params(self):
@@ -47,7 +48,10 @@ class MonoDepthNode:
             rospy.loginfo("Mono depth estimation is disabled.")
             return
         # initialize model from model_params
+        time1 = rospy.Time.now()
         self.model = create_model(self.model_params)
+        time2 = rospy.Time.now()
+        rospy.loginfo(f"Loaded model: {self.model.model_name} in {(time2 - time1).to_sec()} seconds.")
 
         # initialize ROS subscribers and publishers
         self.bridge = CvBridge()
@@ -67,12 +71,12 @@ class MonoDepthNode:
 
     def image_callback(self, msg):
 
-        # Only process the image if the time interval is greater than the process rate
-        current_time = rospy.Time.now()
-        if (current_time - self.last_process_time).to_sec() < 1.0 / self.process_rate:
-            return
-        self.last_process_time = current_time
-
+        self._last_image = msg
+    
+    def process_image(self):
+        
+        msg = self._last_image
+                      
         # Convert ROS Image message to cv2 image
         if self.input_compressed:
             cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, "rgb8")
@@ -92,7 +96,13 @@ class MonoDepthNode:
         self.depth_pub.publish(depth_msg)
 
     def run(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+            if self._last_image is not None:
+                self.process_image()
+            else:
+                rospy.loginfo("Waiting for image.")
+                rospy.sleep(1.0)
+        
 
 if __name__ == '__main__':
 

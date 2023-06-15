@@ -34,7 +34,7 @@ def read_images(dir, suffix):
 
     return images, image_names
 
-def load_models(model_name, cache_dir="/repo/checkpoints/huggingface", device="cpu"):
+def load_models(model_name, cache_dir="/repo/jetson-inference/data/huggingface", device="cpu"):
     """
     Load the feature extractor and the model from the Hugging Face Hub.
     """
@@ -96,14 +96,14 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
     model_name = "vinvino02/glpn-nyu"
-    output_dir = "./output/glpn-nyu"
-    data_dir = "/datasets/mono_depth_estimation"
+    output_dir = "/repo/jetson_perception_ros_nodes/output/glpn"
+    data_dir = "/repo/jetson-inference/data/custom_images"
 
     images, image_names = read_images(data_dir, ".png")
 
     feature_extractor, model = load_models(model_name, device=device)
 
-    os.makedirs("./output/glpn-nyu", exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     for image, image_name in zip(images, image_names):
         depth = predict_depth(image, feature_extractor, model)
         # depth.save(os.path.join(output_dir, image_name))

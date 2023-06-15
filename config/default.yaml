@@ -5,9 +5,7 @@ monocular_depth_estimation:
   output_compressed: false # set to true if the output image should be compressed
   source_topic: "/wide_angle_camera_front/image_color/compressed"
   target_topic: "/wide_angle_camera_front/depth"
-  # source_topic: "/image_publisher_1686752337220375565/image_raw"
-  # target_topic: "/image_publisher_1686752337220375565/depth"
-  process_rate: 10 # Hz, drop frames if time between received frames is less than 1/process_rate
+  process_rate: 0.33 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated 
 
   model:
     model_name: "FastDepth" # "FastDepth", "GuidedDecoding"
@@ -21,3 +19,8 @@ monocular_depth_estimation:
       model_path: "/repo/jetson-inference/data/guideddecoding_models/NYU_Full_GuideDepth.pth" # path to the model in the container
       resolution: [480, 640] # [height, width], should match the downloaded model's resolution
       max_depth: 10.0 # maximum depth value in meters, should match the downloaded model's max_depth
+
+    GLPN:
+      network: "vinvino02/glpn-nyu" 
+      model_cache_dir: "/repo/jetson-inference/data/glpn_models/GLPN.pth" # directory to store automatically downloaded models 
+    
