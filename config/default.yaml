@@ -3,9 +3,9 @@ monocular_depth_estimation:
   enabled: true
   input_compressed: true # set to true if the input image is compressed
   output_compressed: false # set to true if the output image should be compressed
-  source_topic: "/wide_angle_camera_front/image_color/compressed"
+  source_topic: "/usb_cam/image_raw/compressed"
   target_topic: "/wide_angle_camera_front/depth"
-  process_rate: 0.33 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated 
+  process_rate: 20 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated
 
   model:
     model_name: "FastDepth" # "FastDepth", "GuidedDecoding"
@@ -23,4 +23,20 @@ monocular_depth_estimation:
     GLPN:
       network: "vinvino02/glpn-nyu" 
       model_cache_dir: "/repo/jetson-inference/data/glpn_models/GLPN.pth" # directory to store automatically downloaded models 
+
+
+stereo_depth_estimation:
+
+  enabled: false
+  input_compressed: true # set to true if the input image is compressed
+  output_compressed: false # set to true if the output image should be compressed
+  source_topic: "/usb_cam/image_raw/compressed"
+  target_topic: "/wide_angle_camera_front/depth"
+  process_rate: 20 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated
+
+  RAFTStereo:
+    model_path: "/repo/jetson-inference/data/raft-stereo-640x384.pth" # path to the model in the container
+    resolution: [384, 640] # [height, width], should match the downloaded model's resolution
+    max_depth: 10.0 # maximum depth value in meters, should match the downloaded model's max_depth
+
     

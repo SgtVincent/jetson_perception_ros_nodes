@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONTAINER_IMAGE="ros:noetic-pytorch-l4t-r35.3.1"
+CONTAINER_IMAGE="sgtvincent/ros:noetic-raft-stereo"
 PROJECT_ROOT="/ros_deep_learning"
 
 DOCKER_ARGS="-e ROS_MASTER_URI=http://192.168.55.100:11311 -e ROS_IP=192.168.55.1"

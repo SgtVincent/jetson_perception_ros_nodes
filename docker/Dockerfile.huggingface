@@ -13,15 +13,16 @@ RUN python3 -m pip install --no-cache-dir transformers
 # Install cv_bridge while ignoring version conflict between installed opencv (custom version for Jetson) and cv_bridge
 # https://github.com/dusty-nv/jetson-containers/issues/158
 RUN apt-mark hold libopencv libopencv-dev 
-RUN apt install -y ros-noetic-cv-bridge
+# install ros-noetic-cv-bridge while ignoring umet dependencies error.  
+RUN apt install -y ros-noetic-cv-bridge; exit 0
 # RUN apt --fix-broken install -y
 
 # patch PyTorch version string to be compliant with PEP 440
-# from https://github.com/huggingface/transformers/blob/main/docker/transformers-pytorch-gpu/Dockerfile
+# https://github.com/dusty-nv/jetson-containers/blob/master/Dockerfile.pytorch
 RUN echo "patching PyTorch version string to be PEP 440 compliant..."; \
   sed -i 's/2.0.0.nv23.05/2.0.0/g' /usr/local/lib/python3.8/dist-packages/torch/version.py; \
   sed -i 's/2.0.0.nv23.05/2.0.0/g' /usr/local/lib/python3.8/dist-packages/torch-2.0.0.nv23.05.dist-info/METADATA; \
   head /usr/local/lib/python3.8/dist-packages/torch/version.py; \
-  head /usr/local/lib/python3.8/dist-packages/torch-2.0.0.nv23.05.dist-info/METADATA; \
+  head /usr/local/lib/python3.8/dist-packages/torch-2.0.0.nv23.05.dist-info/METADATA; 
 
 RUN python3 -c "import torch; print(torch.cuda.is_available())"

@@ -2,3 +2,8 @@
 	path = scripts/monocular_depth_estimation/GuidedDecoding
 	url = https://github.com/mic-rud/GuidedDecoding.git
 	ignore = dirty
+
+[submodule "scripts/stereo_depth_estimation/RAFT-Stereo"]
+	path = scripts/stereo_depth_estimation/RAFT-Stereo
+	url = https://github.com/princeton-vl/RAFT-Stereo.git
+	ignore = dirty

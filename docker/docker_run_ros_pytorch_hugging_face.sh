@@ -12,20 +12,20 @@ USER_VOLUME="\
 
 USER_COMMAND="" 
 
-# check for display
-DISPLAY_DEVICE=" "
+# # check for display
+# DISPLAY_DEVICE=" "
 
-if [ -n "$DISPLAY" ]; then
-	# give docker root user X11 permissions
-	sudo xhost +si:localuser:root
+# if [ -n "$DISPLAY" ]; then
+# 	# give docker root user X11 permissions
+# 	sudo xhost +si:localuser:root
 	
-	# enable SSH X11 forwarding inside container (https://stackoverflow.com/q/48235040)
-	XAUTH=/tmp/.docker.xauth
-	xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
-	chmod 777 $XAUTH
+# 	# enable SSH X11 forwarding inside container (https://stackoverflow.com/q/48235040)
+# 	XAUTH=/tmp/.docker.xauth
+# 	xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+# 	chmod 777 $XAUTH
 
-	DISPLAY_DEVICE="-e DISPLAY=$DISPLAY -v /tmp/.X11-unix/:/tmp/.X11-unix -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH"
-fi
+# 	DISPLAY_DEVICE="-e DISPLAY=$DISPLAY -v /tmp/.X11-unix/:/tmp/.X11-unix -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH"
+# fi
 
 echo "CONTAINER_IMAGE: $CONTAINER_IMAGE"
 echo "DOCKER_ARGS:      $DOCKER_ARGS"

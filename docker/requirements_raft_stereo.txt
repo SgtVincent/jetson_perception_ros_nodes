@@ -1,0 +1,9 @@
+matplotlib
+tensorboard
+scipy
+tqdm
+opencv-python
+opt_einsum
+imageio
+scikit-image
+# p7zip # for unzipping datasets
