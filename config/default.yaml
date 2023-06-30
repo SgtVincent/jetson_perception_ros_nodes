@@ -3,7 +3,8 @@ monocular_depth_estimation:
   enabled: true
   input_compressed: true # set to true if the input image is compressed
   output_compressed: false # set to true if the output image should be compressed
-  source_topic: "/usb_cam/image_raw/compressed"
+  source_topic_left: "/usb_cam/image_raw/compressed"
+  source_topic_right: "/usb_cam/image_raw/compressed"
   target_topic: "/wide_angle_camera_front/depth"
   process_rate: 20 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated
 

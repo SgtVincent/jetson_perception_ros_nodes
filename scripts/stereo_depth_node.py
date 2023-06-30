@@ -14,7 +14,7 @@ from monocular_depth_estimation import create_model
 from utils.parameters import get_nested_item
 
 
-class MonoDepthNode:
+class StereoDepthNode(object):
     def __init__(self):
         self._read_params()
         self._init_from_params()
@@ -24,12 +24,31 @@ class MonoDepthNode:
     def _read_params(self):
         """
         Read parameters from ROS parameter server.
+
+        Parameters:
+            stereo_depth_estimation:
+
+            enabled: false
+            input_compressed: true # set to true if the input image is compressed
+            output_compressed: false # set to true if the output image should be compressed
+            source_topic: "/usb_cam/image_raw/compressed"
+            target_topic: "/wide_angle_camera_front/depth"
+            process_rate: 20 # Hz, drop frames if time between received frames is less than 1/process_rate, already deprecated
+
+            RAFTStereo:
+                model_path: "/repo/jetson-inference/data/raft-stereo-640x384.pth" # path to the model in the container
+                resolution: [384, 640] # [height, width], should match the downloaded model's resolution
+                max_depth: 10.0 # maximum depth value in meters, should match the downloaded model's max_depth
+
         """
+        
+
+
         # TODO: rosparam load yaml in roslaunch does not work properly, just load parameters from yaml
         # self.params = rospy.get_param('/monocular_depth_estimation')  
         config_path = os.path.join(dirname(dirname(os.path.abspath(__file__))), 'config/default.yaml')
         with open(config_path, 'r') as f:
-            self.params = get_nested_item(yaml.safe_load(f), 'monocular_depth_estimation')
+            self.params = get_nested_item(yaml.safe_load(f), 'stereo_depth_estimation')
         
 
         self.enabled = get_nested_item(self.params, 'enabled')
@@ -108,7 +127,7 @@ if __name__ == '__main__':
 
     rospy.init_node('~')
 
-    depth_prediction_node = MonoDepthNode()
+    depth_prediction_node = StereoDepthNode()
     
     if depth_prediction_node.enabled:
         depth_prediction_node.run()
